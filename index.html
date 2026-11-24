@@ -21,6 +21,11 @@
     <button class="tab-btn active" data-tab="customers">2. Customer Data</button>
     <button class="tab-btn" data-tab="stock">3. Stock Management</button>
   </nav>
+  <div class="sync-box" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <button class="s" id="btnSheetSync" title="Sync all data to Google Sheet">☁ Sync Sheet</button>
+    <button class="s" id="btnSheetRestore" title="Load data from Google Sheet">⬇ Restore</button>
+    <button class="s" id="btnSheetUrl" title="Set Google Apps Script URL">⚙ Sheet URL</button>
+  </div>
   <span class="mode" id="mode"></span>
 </header>
 
