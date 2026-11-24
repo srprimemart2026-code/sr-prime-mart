@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="favicon.png">
+<title>S.R. PRIME MART – Customer Data</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img class="logo" src="logo.png" alt="S.R. Prime Mart logo"><div><h1>S.R. PRIME MART</h1><div class="sub">Customer &amp; order ledger</div></div></div>
+  <span class="mode" id="mode"></span>
+</header>
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><b id="sC">0</b><span>Total customers</span></div>
+    <div class="stat"><b id="sO">0</b><span>Total orders</span></div>
+    <div class="stat"><b id="sT">৳0</b><span>Total sales</span></div>
+    <div class="stat"><b id="sDc">৳0</b><span>Delivery charge</span></div>
+    <div class="stat"><b id="sD">৳0</b><span>Payment due</span></div>
+    <div class="stat"><b id="sP">0</b><span>Pending deliveries</span></div>
+    <div class="stat"><b id="sPf" class="g">৳0</b><span>Total profit</span></div>
+    <div class="stat"><b id="sLs" class="r">৳0</b><span>Total loss</span></div>
+    <div class="stat"><b id="sNt">৳0</b><span>Net profit / loss</span></div>
+  </div>
+
+  <div class="mode" id="stor" style="margin:-4px 0 12px"></div>
+
+  <div class="layout"><aside>
+  <div class="card">
+    <b class="ct" id="ft">Add new order</b>
+    <div class="grid" style="margin-top:10px">
+      <div><label>Invoice No.</label><input id="inv" placeholder="SRPM-0001" autocomplete="off"></div>
+      <div><label>Mobile number</label><input id="phone" list="phones" inputmode="tel" placeholder="01XXXXXXXXX" autocomplete="off"></div>
+      <div class="full"><label>Customer name</label><input id="name" list="names" placeholder="Name" autocomplete="off"></div>
+      <div><label>Date</label><input id="date" type="date"></div>
+      <div class="full"><label>Product</label><input id="product" list="products" placeholder="Product name"></div>
+      <div><label>Price (৳)</label><input id="price" type="number" min="0" inputmode="decimal"></div>
+      <div><label>Product cost (৳)</label><input id="cost" type="number" min="0" inputmode="decimal" placeholder="Per piece"></div>
+      <div><label>Quantity</label><input id="qty" type="number" min="1" value="1" inputmode="numeric"></div>
+      <div><label>Delivery charge (−৳)</label><input id="dc" type="number" min="0" inputmode="decimal" list="dcs" placeholder="Minus"><datalist id="dcs"><option value="0"><option value="60"><option value="100"><option value="120"><option value="150"></datalist></div>
+      <div><label>Delivery status</label><select id="dst"><option>Pending</option><option>Shipped</option><option>Delivered</option><option>Returned</option></select></div>
+      <div><label>Payment status</label><select id="pst"><option>Due</option><option>Paid</option><option>Loss</option></select></div>
+      <div class="full"><label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-size:14px;color:var(--tx)"><input type="checkbox" id="rs" style="width:auto;margin:0"> Reseller product</label></div>
+    </div>
+    <div class="hint" id="hint"></div>
+    <div class="row">
+      <button class="p" id="save">Save</button>
+      <button id="clear">Clear form</button>
+      <span id="tot" style="margin-left:auto;font-weight:600"></span>
+    </div>
+    <datalist id="phones"></datalist><datalist id="names"></datalist><datalist id="products"></datalist>
+  </div>
+
+  </aside><main>
+  <div class="card">
+    <div class="bar">
+      <input id="q" placeholder="Search by name, number or product…">
+      <select id="fd"><option value="">All deliveries</option><option>Pending</option><option>Shipped</option><option>Delivered</option><option>Returned</option></select>
+      <select id="ftp"><option value="">All types</option><option>Own</option><option>Reseller</option></select>
+      <select id="fp"><option value="">All payments</option><option>Due</option><option>Paid</option><option>Loss</option><option>Scam</option></select>
+      <button id="csv">Download Excel/CSV</button>
+    </div>
+    <div id="csvmsg" class="hint"></div>
+    <div id="cp" style="display:none;margin-bottom:10px">
+      <div class="mode" style="margin-bottom:4px">Download did not start. Copy this and paste it into Excel or Google Sheets (click cell A1, then Ctrl+V).</div>
+      <textarea id="cpt" rows="7" readonly></textarea>
+      <div class="row" style="margin-top:6px"><button class="p s" id="cpc">Copy all</button><button class="s" id="cpx">Close</button></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Invoice</th><th>Date</th><th>Name</th><th>Number</th><th>Product</th><th>Type</th><th>Price</th><th>Quantity</th><th>Delivery charge</th><th>Total</th><th>Cost</th><th>Profit / Loss</th><th>Delivery</th><th>Payment</th><th></th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+  </div>
+  </main></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
