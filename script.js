@@ -143,8 +143,8 @@ function nextInv(){var m=0;orders.forEach(function(o){var x=/(\d+)\s*$/.exec(o.i
 function fmt(b){return b<1048576?(b/1024).toFixed(1)+" KB":(b/1048576).toFixed(2)+" MB"}
 function stor(){
   var el=$("stor");if(!el)return;
-  var n=orders.length,sz=0;try{sz=new Blob([JSON.stringify(orders)]).size}catch(e){}
-  var base="Storage: "+n+" orders · data "+fmt(sz);el.textContent=base;
+  var n=orders.length,sz=0;try{sz=new Blob([JSON.stringify({orders:orders,accounts:accounts,stocks:stocks})]).size}catch(e){}
+  var base="Storage: "+n+" orders · "+stocks.length+" products · "+accounts.length+" entries · data "+fmt(sz);el.textContent=base;
   if(idb&&navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(function(e){el.textContent=base+" · browser storage used "+fmt(e.usage||0)+" of "+fmt(e.quota||0)+" available"}).catch(function(){});
 }
 
@@ -181,17 +181,20 @@ function autofill(by){
   $("hint").textContent="Returning customer · Previous orders: "+cnt+(due?" · Due: "+tk(due):"");
 }
 
-/* Auto-fill price & cost when selecting a product from Stock */
-$("product").addEventListener("change",function(){
+function fillProductFromStock(){
   var val=$("product").value.trim().toLowerCase();
   if(!val||editId)return;
   var st=stocks.find(function(s){return (s.name||"").trim().toLowerCase()===val});
   if(st){
-    if(!$("price").value&&st.price)$("price").value=st.price;
-    if(!$("cost").value&&st.cost!=null)$("cost").value=st.cost;
+    if(st.price)$("price").value=st.price;
+    if(st.cost!=null)$("cost").value=st.cost;
+    var avail=(+st.qty||0)-getSoldQty(st.name);
+    $("hint").textContent="Stock available: "+avail+" units";
     calcTot();
   }
-});
+}
+$("product").addEventListener("input",fillProductFromStock);
+$("product").addEventListener("change",fillProductFromStock);
 
 function clearForm(){
   editId=null;["phone","name","product","price","cost","dc"].forEach(function(i){$(i).value=""});
@@ -363,6 +366,10 @@ $("stClear").onclick=clearStockForm;
 $("stSave").onclick=function(){
   var name=$("stName").value.trim();
   if(!name){alert("Please enter product name");return}
+  if(!stEditId){
+    var dup=stocks.find(function(x){return (x.name||"").trim().toLowerCase()===name.toLowerCase()});
+    if(dup){alert("This product already exists in Stock! Click Edit on that row to update its quantity.");return}
+  }
   var old=stEditId?stocks.find(function(x){return x.id==stEditId}):null;
   var obj={id:stEditId||("s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),ts:old?old.ts:Date.now(),name:name,sku:$("stSku").value.trim(),qty:+$("stQty").value||0,cost:+$("stCost").value||0,price:+$("stPrice").value||0};
   persistStock(obj);clearStockForm();
