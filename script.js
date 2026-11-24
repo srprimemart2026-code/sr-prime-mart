@@ -90,7 +90,7 @@ async function init(){
   render();
   renderAccounts();
   renderStock();
-  $("mode").textContent="Saved in this browser (take regular CSV backups)";
+  $("mode").textContent=getSheetUrl()?"Connected to Google Sheet ✓":"Saved in this browser (take regular CSV / Sheet backups)";
 }
 
 function persistOrder(o){
@@ -403,6 +403,122 @@ $("stCsv").onclick=function(){
     return [s.sku,s.name,s.cost,s.price,s.qty,sold,avail,Math.max(0,avail)*(+s.cost||0)];
   }));
   downloadCSV(rows,"sr-prime-mart-stock.csv");
+};
+
+/* ---------- GOOGLE SHEET AUTO-SYNC & RESTORE ---------- */
+var LS_SHEET_URL="srpm_sheet_webhook_v1";
+function getSheetUrl(){return localStorage.getItem(LS_SHEET_URL)||""}
+
+function syncToGoogleSheet(manual){
+  var url=getSheetUrl();
+  if(!url){
+    if(manual)alert("Please click '⚙ Sheet URL' first and paste your Google Apps Script Web App URL.");
+    return;
+  }
+  $("mode").textContent="Syncing to Google Sheet...";
+  var payload={
+    orders:orders.map(function(o){
+      return [
+        o.id,o.inv,o.date,o.name,o.phone,o.product,
+        o.rs?"Reseller":"Own",o.price,o.qty,o.dc||0,
+        total(o),o.cost==null?"":(+o.cost||0)*(+o.qty||0),
+        pl(o)==null?"":pl(o),o.dst,o.pst,o.ts||""
+      ];
+    }),
+    accounts:accounts.map(function(a){
+      return [a.id,a.date,a.type,a.cat,a.note||"",a.amt,a.ts||""];
+    }),
+    stock:stocks.map(function(s){
+      var sold=getSoldQty(s.name),avail=(+s.qty||0)-sold;
+      return [
+        s.id,s.sku||"",s.name,s.cost,s.price,s.qty,
+        sold,avail,Math.max(0,avail)*(+s.cost||0),s.ts||""
+      ];
+    })
+  };
+
+  fetch(url,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(payload)
+  }).then(function(){
+    var time=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+    $("mode").textContent="Synced with Google Sheet ✓ ("+time+")";
+  }).catch(function(){
+    $("mode").textContent="Saved locally (Sheet sync failed)";
+  });
+}
+
+var _origPersistOrder=persistOrder,_origRemoveOrder=removeOrder;
+persistOrder=function(o){_origPersistOrder(o);syncToGoogleSheet(false)};
+removeOrder=function(id){_origRemoveOrder(id);syncToGoogleSheet(false)};
+
+var _origPersistAccount=persistAccount,_origRemoveAccount=removeAccount;
+persistAccount=function(a){_origPersistAccount(a);syncToGoogleSheet(false)};
+removeAccount=function(id){_origRemoveAccount(id);syncToGoogleSheet(false)};
+
+var _origPersistStock=persistStock,_origRemoveStock=removeStock;
+persistStock=function(s){_origPersistStock(s);syncToGoogleSheet(false)};
+removeStock=function(id){_origRemoveStock(id);syncToGoogleSheet(false)};
+
+$("btnSheetUrl").onclick=function(){
+  var cur=getSheetUrl();
+  var next=prompt("Paste your Google Apps Script Web App URL:",cur);
+  if(next!==null){
+    localStorage.setItem(LS_SHEET_URL,next.trim());
+    if(next.trim())syncToGoogleSheet(true);
+  }
+};
+
+$("btnSheetSync").onclick=function(){syncToGoogleSheet(true)};
+
+$("btnSheetRestore").onclick=async function(){
+  var url=getSheetUrl();
+  if(!url){alert("Please set your Sheet URL first.");return}
+  if(!confirm("This will restore & merge data from your Google Sheet into this browser. Continue?"))return;
+  $("mode").textContent="Restoring from Google Sheet...";
+  try{
+    var res=await fetch(url);
+    var data=await res.json();
+    if(data.orders){
+      data.orders.forEach(function(r){
+        if(!r.ID)return;
+        var o={
+          id:String(r.ID),inv:String(r.Invoice||""),date:String(r.Date||"").slice(0,10),
+          name:String(r.Name||""),phone:String(r.Phone||""),product:String(r.Product||""),
+          rs:r.Type==="Reseller",price:+r.Price||0,qty:+r.Quantity||1,
+          dc:+r["Delivery Charge"]||0,cost:r.Cost===""?null:(+r.Cost||0)/(+r.Quantity||1),
+          dst:r.Delivery||"Pending",pst:r.Payment||"Due",ts:+r.Timestamp||Date.now()
+        };
+        _origPersistOrder(o);
+      });
+    }
+    if(data.accounts){
+      data.accounts.forEach(function(r){
+        if(!r.ID)return;
+        _origPersistAccount({
+          id:String(r.ID),date:String(r.Date||"").slice(0,10),type:r.Type||"Expense",
+          cat:String(r.Category||""),note:String(r.Description||""),
+          amt:+r.Amount||0,ts:+r.Timestamp||Date.now()
+        });
+      });
+    }
+    if(data.stock){
+      data.stock.forEach(function(r){
+        if(!r.ID)return;
+        _origPersistStock({
+          id:String(r.ID),sku:String(r.SKU||""),name:String(r["Product Name"]||""),
+          cost:+r["Buying Cost"]||0,price:+r["Selling Price"]||0,
+          qty:+r["Total Added"]||0,ts:+r.Timestamp||Date.now()
+        });
+      });
+    }
+    $("mode").textContent="Restored from Google Sheet ✓";
+  }catch(err){
+    alert("Could not restore from Google Sheet. Check your Apps Script deployment.");
+    $("mode").textContent="Restore failed";
+  }
 };
 
 clearForm();init();
