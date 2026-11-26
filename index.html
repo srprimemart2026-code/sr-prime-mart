@@ -8,266 +8,293 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="top">
-  <div class="brand">
-    <img class="logo" src="logo.png" alt="S.R. Prime Mart logo" onerror="this.style.display='none'">
-    <div>
-      <h1>S.R. PRIME MART</h1>
-      <div class="sub">Accounts, Customer &amp; Stock Management</div>
-    </div>
-  </div>
-  <nav class="nav-tabs" aria-label="Main Navigation">
-    <button class="tab-btn" data-tab="accounts">1. Accounts</button>
-    <button class="tab-btn active" data-tab="customers">2. Customer Data</button>
-    <button class="tab-btn" data-tab="stock">3. Stock Management</button>
-  </nav>
-  <div class="sync-box" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <button class="s" id="btnSheetSync" title="Sync all data to Google Sheet">☁ Sync Sheet</button>
-    <button class="s" id="btnSheetRestore" title="Load data from Google Sheet">⬇ Restore</button>
-    <button class="s" id="btnSheetUrl" title="Set Google Apps Script URL">⚙ Sheet URL</button>
-  </div>
-  <span class="mode" id="mode"></span>
-</header>
 
-<div class="wrap">
-  <!-- ==================== 1. ACCOUNTS SECTION ==================== -->
-  <section id="sec-accounts" class="tab-sec" style="display:none">
-    <div class="stats">
-      <div class="stat"><b id="aOrderNet" class="g">৳0</b><span>Order net profit</span></div>
-      <div class="stat"><b id="aInc" class="g">৳0</b><span>Other income</span></div>
-      <div class="stat"><b id="aExp" class="r">৳0</b><span>Extra expenses</span></div>
-      <div class="stat"><b id="aBal">৳0</b><span>Net cash balance</span></div>
-      <div class="stat"><b id="aCnt">0</b><span>Total entries</span></div>
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div id="loginScreen" class="login-wrap" aria-label="Admin Login">
+  <div class="login-card">
+    <div class="login-brand">
+      <img class="login-logo" src="logo.png" alt="S.R. Prime Mart logo" onerror="this.style.display='none'">
+      <h2>S.R. PRIME MART</h2>
+      <p>Accounts, Customer &amp; Stock Management</p>
     </div>
-    <div class="mode" style="margin:0 0 16px">Note: Paid orders &amp; losses from Customer Data are automatically included in Net Cash Balance.</div>
+    <form id="loginForm" autocomplete="off">
+      <div class="login-field">
+        <label for="loginPass">Access Password</label>
+        <div class="pass-box">
+          <input type="password" id="loginPass" placeholder="Enter password" required autofocus>
+          <button type="button" class="toggle-pass" id="togglePass" aria-label="Show or hide password">Show</button>
+        </div>
+      </div>
+      <div id="loginErr" class="login-err" role="alert"></div>
+      <button type="submit" class="p login-btn">Unlock Dashboard</button>
+    </form>
+  </div>
+</div>
 
-    <div class="layout">
-      <aside>
-        <div class="card">
-          <b class="ct" id="aft">Add income / expense</b>
-          <div class="grid" style="margin-top:10px">
-            <div>
-              <label>Type</label>
-              <select id="aType">
-                <option value="Expense">Expense (−)</option>
+<!-- ==================== MAIN APP ==================== -->
+<div id="appRoot" style="display:none">
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="logo.png" alt="S.R. Prime Mart logo" onerror="this.style.display='none'">
+      <div>
+        <h1>S.R. PRIME MART</h1>
+        <div class="sub">Accounts, Customer &amp; Stock Management</div>
+      </div>
+    </div>
+    <nav class="nav-tabs" aria-label="Main Navigation">
+      <button class="tab-btn" data-tab="accounts">1. Accounts</button>
+      <button class="tab-btn active" data-tab="customers">2. Customer Data</button>
+      <button class="tab-btn" data-tab="stock">3. Stock Management</button>
+    </nav>
+    <div class="sync-box">
+      <button class="s hbtn" id="btnSheetSync" title="Sync all data to Google Sheet">☁ Sync Sheet</button>
+      <button class="s hbtn" id="btnSheetRestore" title="Load data from Google Sheet">⬇ Restore</button>
+      <button class="s hbtn" id="btnSheetUrl" title="Set Google Apps Script URL">⚙ Sheet URL</button>
+      <button class="s hbtn lock-btn" id="btnLock" title="Lock dashboard">🔒 Lock</button>
+    </div>
+    <span class="mode" id="mode"></span>
+  </header>
+
+  <div class="wrap">
+    <!-- ==================== 1. ACCOUNTS SECTION ==================== -->
+    <section id="sec-accounts" class="tab-sec" style="display:none">
+      <div class="stats">
+        <div class="stat"><b id="aOrderNet" class="g">৳0</b><span>Order net profit</span></div>
+        <div class="stat"><b id="aInc" class="g">৳0</b><span>Other income</span></div>
+        <div class="stat"><b id="aExp" class="r">৳0</b><span>Extra expenses</span></div>
+        <div class="stat"><b id="aBal">৳0</b><span>Net cash balance</span></div>
+        <div class="stat"><b id="aCnt">0</b><span>Total entries</span></div>
+      </div>
+      <div class="mode" style="margin:0 0 16px">Note: Paid orders &amp; losses from Customer Data are automatically included in Net Cash Balance.</div>
+
+      <div class="layout">
+        <aside>
+          <div class="card">
+            <b class="ct" id="aft">Add income / expense</b>
+            <div class="grid" style="margin-top:10px">
+              <div>
+                <label>Type</label>
+                <select id="aType">
+                  <option value="Expense">Expense (−)</option>
+                  <option value="Income">Income (+)</option>
+                </select>
+              </div>
+              <div>
+                <label>Date</label>
+                <input id="aDate" type="date">
+              </div>
+              <div class="full">
+                <label>Category</label>
+                <input id="aCat" list="aCats" placeholder="e.g. Facebook Ads, Packaging, Capital">
+                <datalist id="aCats">
+                  <option value="Facebook / Boost Ads">
+                  <option value="Packaging &amp; Materials">
+                  <option value="Stock Purchase">
+                  <option value="Delivery Adjustment">
+                  <option value="Office / Shop Rent">
+                  <option value="Staff Salary">
+                  <option value="Owner Capital">
+                </datalist>
+              </div>
+              <div class="full">
+                <label>Description / Note</label>
+                <input id="aNote" placeholder="Details about this transaction">
+              </div>
+              <div class="full">
+                <label>Amount (৳)</label>
+                <input id="aAmt" type="number" min="0" inputmode="decimal" placeholder="0">
+              </div>
+            </div>
+            <div class="hint" id="aHint"></div>
+            <div class="row">
+              <button class="p" id="aSave">Save Entry</button>
+              <button id="aClear">Clear</button>
+            </div>
+          </div>
+        </aside>
+
+        <main>
+          <div class="card">
+            <div class="bar">
+              <input id="aQ" placeholder="Search by category or note…">
+              <select id="aFt">
+                <option value="">All types</option>
                 <option value="Income">Income (+)</option>
+                <option value="Expense">Expense (−)</option>
               </select>
+              <button id="aCsv">Download Accounts CSV</button>
             </div>
-            <div>
-              <label>Date</label>
-              <input id="aDate" type="date">
-            </div>
-            <div class="full">
-              <label>Category</label>
-              <input id="aCat" list="aCats" placeholder="e.g. Facebook Ads, Packaging, Capital">
-              <datalist id="aCats">
-                <option value="Facebook / Boost Ads">
-                <option value="Packaging &amp; Materials">
-                <option value="Stock Purchase">
-                <option value="Delivery Adjustment">
-                <option value="Office / Shop Rent">
-                <option value="Staff Salary">
-                <option value="Owner Capital">
-              </datalist>
-            </div>
-            <div class="full">
-              <label>Description / Note</label>
-              <input id="aNote" placeholder="Details about this transaction">
-            </div>
-            <div class="full">
-              <label>Amount (৳)</label>
-              <input id="aAmt" type="number" min="0" inputmode="decimal" placeholder="0">
+            <div class="tw">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="aTb"></tbody>
+              </table>
             </div>
           </div>
-          <div class="hint" id="aHint"></div>
-          <div class="row">
-            <button class="p" id="aSave">Save Entry</button>
-            <button id="aClear">Clear</button>
-          </div>
-        </div>
-      </aside>
+        </main>
+      </div>
+    </section>
 
-      <main>
-        <div class="card">
-          <div class="bar">
-            <input id="aQ" placeholder="Search by category or note…">
-            <select id="aFt">
-              <option value="">All types</option>
-              <option value="Income">Income (+)</option>
-              <option value="Expense">Expense (−)</option>
-            </select>
-            <button id="aCsv">Download Accounts CSV</button>
-          </div>
-          <div class="tw">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Category</th>
-                  <th>Description</th>
-                  <th>Amount</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="aTb"></tbody>
-            </table>
-          </div>
-        </div>
-      </main>
-    </div>
-  </section>
+    <!-- ==================== 2. CUSTOMER DATA SECTION ==================== -->
+    <section id="sec-customers" class="tab-sec">
+      <div class="stats">
+        <div class="stat"><b id="sC">0</b><span>Total customers</span></div>
+        <div class="stat"><b id="sO">0</b><span>Total orders</span></div>
+        <div class="stat"><b id="sT">৳0</b><span>Total sales</span></div>
+        <div class="stat"><b id="sDc">৳0</b><span>Delivery charge</span></div>
+        <div class="stat"><b id="sD">৳0</b><span>Payment due</span></div>
+        <div class="stat"><b id="sP">0</b><span>Pending deliveries</span></div>
+        <div class="stat"><b id="sPf" class="g">৳0</b><span>Total profit</span></div>
+        <div class="stat"><b id="sLs" class="r">৳0</b><span>Total loss</span></div>
+        <div class="stat"><b id="sNt">৳0</b><span>Net profit / loss</span></div>
+      </div>
 
-  <!-- ==================== 2. CUSTOMER DATA SECTION ==================== -->
-  <section id="sec-customers" class="tab-sec">
-    <div class="stats">
-      <div class="stat"><b id="sC">0</b><span>Total customers</span></div>
-      <div class="stat"><b id="sO">0</b><span>Total orders</span></div>
-      <div class="stat"><b id="sT">৳0</b><span>Total sales</span></div>
-      <div class="stat"><b id="sDc">৳0</b><span>Delivery charge</span></div>
-      <div class="stat"><b id="sD">৳0</b><span>Payment due</span></div>
-      <div class="stat"><b id="sP">0</b><span>Pending deliveries</span></div>
-      <div class="stat"><b id="sPf" class="g">৳0</b><span>Total profit</span></div>
-      <div class="stat"><b id="sLs" class="r">৳0</b><span>Total loss</span></div>
-      <div class="stat"><b id="sNt">৳0</b><span>Net profit / loss</span></div>
-    </div>
+      <div class="mode" id="stor" style="margin:-4px 0 12px"></div>
 
-    <div class="mode" id="stor" style="margin:-4px 0 12px"></div>
-
-    <div class="layout">
-      <aside>
-        <div class="card">
-          <b class="ct" id="ft">Add new order</b>
-          <div class="grid" style="margin-top:10px">
-            <div><label>Invoice No.</label><input id="inv" placeholder="SRPM-0001" autocomplete="off"></div>
-            <div><label>Mobile number</label><input id="phone" list="phones" inputmode="tel" placeholder="01XXXXXXXXX" autocomplete="off"></div>
-            <div class="full"><label>Customer name</label><input id="name" list="names" placeholder="Name" autocomplete="off"></div>
-            <div><label>Date</label><input id="date" type="date"></div>
-            <div class="full"><label>Product</label><input id="product" list="products" placeholder="Product name"></div>
-            <div><label>Price (৳)</label><input id="price" type="number" min="0" inputmode="decimal"></div>
-            <div><label>Product cost (৳)</label><input id="cost" type="number" min="0" inputmode="decimal" placeholder="Per piece"></div>
-            <div><label>Quantity</label><input id="qty" type="number" min="1" value="1" inputmode="numeric"></div>
-            <div><label>Delivery charge (−৳)</label><input id="dc" type="number" min="0" inputmode="decimal" list="dcs" placeholder="Minus"><datalist id="dcs"><option value="0"><option value="60"><option value="100"><option value="120"><option value="150"></datalist></div>
-            <div><label>Delivery status</label><select id="dst"><option>Pending</option><option>Shipped</option><option>Delivered</option><option>Returned</option></select></div>
-            <div><label>Payment status</label><select id="pst"><option>Due</option><option>Paid</option><option>Loss</option></select></div>
-            <div class="full"><label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-size:14px;color:var(--tx)"><input type="checkbox" id="rs" style="width:auto;margin:0"> Reseller product</label></div>
-          </div>
-          <div class="hint" id="hint"></div>
-          <div class="row">
-            <button class="p" id="save">Save</button>
-            <button id="clear">Clear form</button>
-            <span id="tot" style="margin-left:auto;font-weight:600"></span>
-          </div>
-          <datalist id="phones"></datalist><datalist id="names"></datalist><datalist id="products"></datalist>
-        </div>
-      </aside>
-
-      <main>
-        <div class="card">
-          <div class="bar">
-            <input id="q" placeholder="Search by name, number or product…">
-            <select id="fd"><option value="">All deliveries</option><option>Pending</option><option>Shipped</option><option>Delivered</option><option>Returned</option></select>
-            <select id="ftp"><option value="">All types</option><option>Own</option><option>Reseller</option></select>
-            <select id="fp"><option value="">All payments</option><option>Due</option><option>Paid</option><option>Loss</option><option>Scam</option></select>
-            <button id="csv">Download Excel/CSV</button>
-          </div>
-          <div id="csvmsg" class="hint"></div>
-          <div id="cp" style="display:none;margin-bottom:10px">
-            <div class="mode" style="margin-bottom:4px">Download did not start. Copy this and paste it into Excel or Google Sheets (click cell A1, then Ctrl+V).</div>
-            <textarea id="cpt" rows="7" readonly></textarea>
-            <div class="row" style="margin-top:6px"><button class="p s" id="cpc">Copy all</button><button class="s" id="cpx">Close</button></div>
-          </div>
-          <div class="tw">
-            <table>
-              <thead><tr><th>Invoice</th><th>Date</th><th>Name</th><th>Number</th><th>Product</th><th>Type</th><th>Price</th><th>Quantity</th><th>Delivery charge</th><th>Total</th><th>Cost</th><th>Profit / Loss</th><th>Delivery</th><th>Payment</th><th></th></tr></thead>
-              <tbody id="tb"></tbody>
-            </table>
-          </div>
-        </div>
-      </main>
-    </div>
-  </section>
-
-  <!-- ==================== 3. STOCK MANAGEMENT SECTION ==================== -->
-  <section id="sec-stock" class="tab-sec" style="display:none">
-    <div class="stats">
-      <div class="stat"><b id="stTotal">0</b><span>Total products</span></div>
-      <div class="stat"><b id="stUnits">0</b><span>Available units</span></div>
-      <div class="stat"><b id="stLow" class="r">0</b><span>Low stock (&le;5)</span></div>
-      <div class="stat"><b id="stCostVal">৳0</b><span>Stock value (cost)</span></div>
-      <div class="stat"><b id="stSellVal" class="g">৳0</b><span>Est. retail value</span></div>
-    </div>
-    <div class="mode" style="margin:0 0 16px">Note: Own product orders in Customer Data automatically deduct from Available Stock (unless Returned).</div>
-
-    <div class="layout">
-      <aside>
-        <div class="card">
-          <b class="ct" id="sft">Add / update product</b>
-          <div class="grid" style="margin-top:10px">
-            <div class="full">
-              <label>Product name</label>
-              <input id="stName" placeholder="Product name" autocomplete="off">
+      <div class="layout">
+        <aside>
+          <div class="card">
+            <b class="ct" id="ft">Add new order</b>
+            <div class="grid" style="margin-top:10px">
+              <div><label>Invoice No.</label><input id="inv" placeholder="SRPM-0001" autocomplete="off"></div>
+              <div><label>Mobile number</label><input id="phone" list="phones" inputmode="tel" placeholder="01XXXXXXXXX" autocomplete="off"></div>
+              <div class="full"><label>Customer name</label><input id="name" list="names" placeholder="Name" autocomplete="off"></div>
+              <div><label>Date</label><input id="date" type="date"></div>
+              <div class="full"><label>Product</label><input id="product" list="products" placeholder="Product name"></div>
+              <div><label>Price (৳)</label><input id="price" type="number" min="0" inputmode="decimal"></div>
+              <div><label>Product cost (৳)</label><input id="cost" type="number" min="0" inputmode="decimal" placeholder="Per piece"></div>
+              <div><label>Quantity</label><input id="qty" type="number" min="1" value="1" inputmode="numeric"></div>
+              <div><label>Delivery charge (−৳)</label><input id="dc" type="number" min="0" inputmode="decimal" list="dcs" placeholder="Minus"><datalist id="dcs"><option value="0"><option value="60"><option value="100"><option value="120"><option value="150"></datalist></div>
+              <div><label>Delivery status</label><select id="dst"><option>Pending</option><option>Shipped</option><option>Delivered</option><option>Returned</option></select></div>
+              <div><label>Payment status</label><select id="pst"><option>Due</option><option>Paid</option><option>Loss</option></select></div>
+              <div class="full"><label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-size:14px;color:var(--tx)"><input type="checkbox" id="rs" style="width:auto;margin:0"> Reseller product</label></div>
             </div>
-            <div>
-              <label>SKU / Code</label>
-              <input id="stSku" placeholder="SKU-01" autocomplete="off">
+            <div class="hint" id="hint"></div>
+            <div class="row">
+              <button class="p" id="save">Save</button>
+              <button id="clear">Clear form</button>
+              <span id="tot" style="margin-left:auto;font-weight:600"></span>
             </div>
-            <div>
-              <label>Opening / Total Stock</label>
-              <input id="stQty" type="number" min="0" value="0" inputmode="numeric">
+            <datalist id="phones"></datalist><datalist id="names"></datalist><datalist id="products"></datalist>
+          </div>
+        </aside>
+
+        <main>
+          <div class="card">
+            <div class="bar">
+              <input id="q" placeholder="Search by name, number or product…">
+              <select id="fd"><option value="">All deliveries</option><option>Pending</option><option>Shipped</option><option>Delivered</option><option>Returned</option></select>
+              <select id="ftp"><option value="">All types</option><option>Own</option><option>Reseller</option></select>
+              <select id="fp"><option value="">All payments</option><option>Due</option><option>Paid</option><option>Loss</option><option>Scam</option></select>
+              <button id="csv">Download Excel/CSV</button>
             </div>
-            <div>
-              <label>Buying Cost (৳)</label>
-              <input id="stCost" type="number" min="0" inputmode="decimal" placeholder="Per piece">
+            <div id="csvmsg" class="hint"></div>
+            <div id="cp" style="display:none;margin-bottom:10px">
+              <div class="mode" style="margin-bottom:4px">Download did not start. Copy this and paste it into Excel or Google Sheets (click cell A1, then Ctrl+V).</div>
+              <textarea id="cpt" rows="7" readonly></textarea>
+              <div class="row" style="margin-top:6px"><button class="p s" id="cpc">Copy all</button><button class="s" id="cpx">Close</button></div>
             </div>
-            <div>
-              <label>Selling Price (৳)</label>
-              <input id="stPrice" type="number" min="0" inputmode="decimal" placeholder="Per piece">
+            <div class="tw">
+              <table>
+                <thead><tr><th>Invoice</th><th>Date</th><th>Name</th><th>Number</th><th>Product</th><th>Type</th><th>Price</th><th>Quantity</th><th>Delivery charge</th><th>Total</th><th>Cost</th><th>Profit / Loss</th><th>Delivery</th><th>Payment</th><th></th></tr></thead>
+                <tbody id="tb"></tbody>
+              </table>
             </div>
           </div>
-          <div class="hint" id="stHint"></div>
-          <div class="row">
-            <button class="p" id="stSave">Save Product</button>
-            <button id="stClear">Clear</button>
-          </div>
-        </div>
-      </aside>
+        </main>
+      </div>
+    </section>
 
-      <main>
-        <div class="card">
-          <div class="bar">
-            <input id="stQ" placeholder="Search by product name or SKU…">
-            <select id="stFilter">
-              <option value="">All stock status</option>
-              <option value="low">Low stock (&le;5)</option>
-              <option value="out">Out of stock (0)</option>
-            </select>
-            <button id="stCsv">Download Stock CSV</button>
+    <!-- ==================== 3. STOCK MANAGEMENT SECTION ==================== -->
+    <section id="sec-stock" class="tab-sec" style="display:none">
+      <div class="stats">
+        <div class="stat"><b id="stTotal">0</b><span>Total products</span></div>
+        <div class="stat"><b id="stUnits">0</b><span>Available units</span></div>
+        <div class="stat"><b id="stLow" class="r">0</b><span>Low stock (&le;5)</span></div>
+        <div class="stat"><b id="stCostVal">৳0</b><span>Stock value (cost)</span></div>
+        <div class="stat"><b id="stSellVal" class="g">৳0</b><span>Est. retail value</span></div>
+      </div>
+      <div class="mode" style="margin:0 0 16px">Note: Own product orders in Customer Data automatically deduct from Available Stock (unless Returned).</div>
+
+      <div class="layout">
+        <aside>
+          <div class="card">
+            <b class="ct" id="sft">Add / update product</b>
+            <div class="grid" style="margin-top:10px">
+              <div class="full">
+                <label>Product name</label>
+                <input id="stName" placeholder="Product name" autocomplete="off">
+              </div>
+              <div>
+                <label>SKU / Code</label>
+                <input id="stSku" placeholder="SKU-01" autocomplete="off">
+              </div>
+              <div>
+                <label>Opening / Total Stock</label>
+                <input id="stQty" type="number" min="0" value="0" inputmode="numeric">
+              </div>
+              <div>
+                <label>Buying Cost (৳)</label>
+                <input id="stCost" type="number" min="0" inputmode="decimal" placeholder="Per piece">
+              </div>
+              <div>
+                <label>Selling Price (৳)</label>
+                <input id="stPrice" type="number" min="0" inputmode="decimal" placeholder="Per piece">
+              </div>
+            </div>
+            <div class="hint" id="stHint"></div>
+            <div class="row">
+              <button class="p" id="stSave">Save Product</button>
+              <button id="stClear">Clear</button>
+            </div>
           </div>
-          <div class="tw">
-            <table>
-              <thead>
-                <tr>
-                  <th>SKU</th>
-                  <th>Product Name</th>
-                  <th>Cost</th>
-                  <th>Sell Price</th>
-                  <th>Total Added</th>
-                  <th>Sold (Own)</th>
-                  <th>Available Stock</th>
-                  <th>Stock Value</th>
-                  <th>Status</th>
-                  <th>Quick Stock</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="stTb"></tbody>
-            </table>
+        </aside>
+
+        <main>
+          <div class="card">
+            <div class="bar">
+              <input id="stQ" placeholder="Search by product name or SKU…">
+              <select id="stFilter">
+                <option value="">All stock status</option>
+                <option value="low">Low stock (&le;5)</option>
+                <option value="out">Out of stock (0)</option>
+              </select>
+              <button id="stCsv">Download Stock CSV</button>
+            </div>
+            <div class="tw">
+              <table>
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Product Name</th>
+                    <th>Cost</th>
+                    <th>Sell Price</th>
+                    <th>Total Added</th>
+                    <th>Sold (Own)</th>
+                    <th>Available Stock</th>
+                    <th>Stock Value</th>
+                    <th>Status</th>
+                    <th>Quick Stock</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="stTb"></tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
-  </section>
+        </main>
+      </div>
+    </section>
+  </div>
 </div>
 
 <script src="script.js"></script>
