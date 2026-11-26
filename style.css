@@ -1,9 +1,9 @@
-:root{--bg:#f4f7f5;--card:#fff;--tx:#142218;--mu:#5c6f62;--bd:#dce6df;--pr:#157336;--prx:#ffffff;--prh:#1b8c43;--head:#0b2b18;--ok:#157336;--wa:#b54708;--er:#c4321c;--row:#f1f6f3;--serif:"Roboto",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#f4f7f5;--card:#fff;--tx:#142218;--mu:#5c6f62;--bd:#dce6df;--pr:#157336;--prx:#ffffff;--prh:#1b8c43;--head:#0b2b18;--ok:#157336;--wa:#b54708;--er:#c4321c;--row:#f1f6f3;--serif:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1410;--card:#152019;--tx:#e6f0e9;--mu:#94a89b;--bd:#26382c;--pr:#58c472;--prx:#06170c;--prh:#74d68b;--head:#071c10;--ok:#58c472;--wa:#ffb866;--er:#ff7a66;--row:#1b2920}}
 :root[data-theme="dark"]{--bg:#0d1410;--card:#152019;--tx:#e6f0e9;--mu:#94a89b;--bd:#26382c;--pr:#58c472;--prx:#06170c;--prh:#74d68b;--head:#071c10;--ok:#58c472;--wa:#ffb866;--er:#ff7a66;--row:#1b2920}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:"Roboto",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:14px;line-height:1.5}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:14px;line-height:1.5}
 
 /* Modern Animated Login Screen & UI/UX */
 .login-wrap{position:fixed;inset:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at top right,#144729,#07160d 70%);z-index:9999;overflow:hidden}
