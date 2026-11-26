@@ -11,15 +11,23 @@ function isAuthed(){
   try{return sessionStorage.getItem(AUTH_KEY)==="1"}catch(e){return false}
 }
 function showApp(){
-  $("loginScreen").style.display="none";
-  $("appRoot").style.display="block";
-  if(!appBooted){appBooted=true;clearForm();init()}
+  var overlay=$("loginScreen");
+  overlay.style.opacity="0";
+  overlay.style.transition="opacity 0.3s ease";
+  setTimeout(function(){
+    overlay.style.display="none";
+    overlay.style.opacity="1";
+    $("appRoot").style.display="block";
+    if(!appBooted){appBooted=true;clearForm();init()}
+  },250);
 }
 function showLogin(){
   try{sessionStorage.removeItem(AUTH_KEY)}catch(e){}
   $("appRoot").style.display="none";
   $("loginScreen").style.display="flex";
   $("loginPass").value="";
+  $("loginPass").type="password";
+  $("togglePass").textContent="👁️";
   $("loginErr").textContent="";
   setTimeout(function(){$("loginPass").focus()},50);
 }
@@ -28,17 +36,24 @@ $("togglePass").onclick=function(){
   var inp=$("loginPass");
   var isPwd=inp.type==="password";
   inp.type=isPwd?"text":"password";
-  $("togglePass").textContent=isPwd?"Hide":"Show";
+  $("togglePass").textContent=isPwd?"🙈":"👁️";
+  inp.focus();
 };
 
 $("loginForm").onsubmit=function(e){
   e.preventDefault();
   var val=$("loginPass").value;
+  var card=$("loginCard");
   if(val===PASS_CODE){
     try{sessionStorage.setItem(AUTH_KEY,"1")}catch(err){}
+    $("loginErr").textContent="";
+    $("loginPass").value="";
     showApp();
   }else{
-    $("loginErr").textContent="Incorrect password. Please try again.";
+    $("loginErr").textContent="Incorrect password! Please try again.";
+    card.classList.remove("shake");
+    void card.offsetWidth;
+    card.classList.add("shake");
     $("loginPass").select();
   }
 };
