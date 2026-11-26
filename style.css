@@ -4,6 +4,22 @@
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5}
+
+/* Login Screen */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at top,color-mix(in srgb,var(--pr) 16%,var(--bg)),var(--bg) 70%)}
+.login-card{width:100%;max-width:400px;background:var(--card);border:1px solid var(--bd);border-top:4px solid var(--pr);border-radius:8px;padding:28px 24px;box-shadow:0 12px 32px rgba(0,0,0,.18)}
+.login-brand{text-align:center;margin-bottom:22px}
+.login-logo{height:68px;width:auto;background:#fff;border-radius:6px;padding:4px 8px;margin:0 auto 10px;display:block}
+.login-brand h2{margin:0;font-size:20px;font-weight:700;letter-spacing:.4px}
+.login-brand p{margin:4px 0 0;font-size:13px;color:var(--mu)}
+.login-field{margin-bottom:14px}
+.pass-box{display:flex;gap:6px;align-items:center}
+.pass-box input{flex:1}
+.toggle-pass{padding:8px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+.login-err{color:var(--er);font-size:13px;font-weight:600;min-height:20px;margin-bottom:10px}
+.login-btn{width:100%;padding:10px 16px;font-size:14px}
+
+/* Header & Navigation */
 .top{background:var(--head);border-bottom:3px solid var(--pr);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:14px}
 .logo{height:84px;width:auto;background:#fff;border-radius:6px;padding:4px 8px;display:block}
@@ -11,6 +27,12 @@ body{margin:0;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,s
 .top h1{font-family:var(--serif);font-size:22px;margin:0;letter-spacing:.5px}
 .sub{font-size:13px;opacity:.8}
 .top .mode{color:#fff;opacity:.85;font-size:12px}
+
+.sync-box{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hbtn{background:#1b1b1b;color:#fff;border-color:#3a3a3a}
+.hbtn:hover{background:#2b2b2b;border-color:var(--pr);color:#fff}
+.lock-btn{border-color:color-mix(in srgb,var(--er) 55%,#3a3a3a);color:#ffb3ad}
+.lock-btn:hover{background:color-mix(in srgb,var(--er) 22%,#1b1b1b);border-color:var(--er);color:#fff}
 
 /* Top 3 Navigation Buttons */
 .nav-tabs{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -43,7 +65,7 @@ button.d{color:var(--er)}button.s{padding:3px 9px;font-size:12px}
 .hint{font-size:12px;color:var(--ok);min-height:18px;margin-top:6px}
 #tot{margin-left:auto;font-weight:700;font-size:13px}
 .bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.bar input{flex:2 1 220px}.bar select{flex:1 1 140px;width:auto}
-.tw{overflow:auto;max-height:calc(100vh - 360px);min-height:340px;border:1px solid var(--bd);border-radius:4px}
+.tw{overflow:auto;max-height:calc(100vh - 360px);min-height:280px;border:1px solid var(--bd);border-radius:4px}
 table{border-collapse:collapse;width:100%;min-width:900px;font-variant-numeric:tabular-nums}
 th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd);font-size:13px;vertical-align:top}
 th{position:sticky;top:0;background:var(--row);font-size:12px;color:var(--mu);font-weight:700;white-space:nowrap;border-bottom:2px solid var(--bd);z-index:1}
