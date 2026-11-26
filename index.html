@@ -5,28 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="favicon.png">
 <title>S.R. PRIME MART – Business Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <!-- ==================== LOGIN SCREEN ==================== -->
 <div id="loginScreen" class="login-wrap" aria-label="Admin Login">
-  <div class="login-card">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="login-card" id="loginCard">
     <div class="login-brand">
-      <img class="login-logo" src="logo.png" alt="S.R. Prime Mart logo" onerror="this.style.display='none'">
+      <div class="logo-box">
+        <img class="login-logo" src="logo.png" alt="S.R. Prime Mart logo" onerror="this.style.display='none'; document.getElementById('fallback-login').style.display='block';">
+        <div id="fallback-login" style="display:none; font-size:22px; font-weight:700; color:#0a6cc2;">S.R. PRIME MART</div>
+      </div>
       <h2>S.R. PRIME MART</h2>
-      <p>Accounts, Customer &amp; Stock Management</p>
+      <p class="login-sub">Authorized Access Only — Enter Password</p>
     </div>
     <form id="loginForm" autocomplete="off">
       <div class="login-field">
         <label for="loginPass">Access Password</label>
         <div class="pass-box">
-          <input type="password" id="loginPass" placeholder="Enter password" required autofocus>
-          <button type="button" class="toggle-pass" id="togglePass" aria-label="Show or hide password">Show</button>
+          <input type="password" id="loginPass" placeholder="••••••••" required autofocus>
+          <button type="button" class="toggle-pass" id="togglePass" title="Show/Hide Password" aria-label="Show or hide password">👁️</button>
         </div>
       </div>
       <div id="loginErr" class="login-err" role="alert"></div>
-      <button type="submit" class="p login-btn">Unlock Dashboard</button>
+      <button type="submit" class="p login-btn">
+        <span>Unlock Dashboard</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
     </form>
   </div>
 </div>
@@ -50,7 +59,7 @@
       <button class="s hbtn" id="btnSheetSync" title="Sync all data to Google Sheet">☁ Sync Sheet</button>
       <button class="s hbtn" id="btnSheetRestore" title="Load data from Google Sheet">⬇ Restore</button>
       <button class="s hbtn" id="btnSheetUrl" title="Set Google Apps Script URL">⚙ Sheet URL</button>
-      <button class="s hbtn lock-btn" id="btnLock" title="Lock dashboard">🔒 Lock</button>
+      <button class="s hbtn lock-btn" id="btnLock" title="Lock dashboard">Logout</button>
     </div>
     <span class="mode" id="mode"></span>
   </header>
