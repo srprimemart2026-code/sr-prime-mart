@@ -1,13 +1,63 @@
 (function(){
 var $=function(i){return document.getElementById(i)};
-var invTouched=false,orders=[],editId=null,ref=null,LS="srpm_orders_v1";
+var AUTH_KEY="srpm_auth_v1",PASS_CODE="461381Shirin";
+var invTouched=false,orders=[],editId=null,LS="srpm_orders_v1",appBooted=false;
 var accounts=[],aEditId=null,LS_ACC="srpm_accounts_v1";
 var stocks=[],stEditId=null,LS_STK="srpm_stocks_v1";
 var LG={"পেন্ডিং":"Pending","পাঠানো হয়েছে":"Shipped","ডেলিভারি হয়েছে":"Delivered","ফেরত":"Returned","বাকি":"Due","আংশিক পরিশোধ":"Partial","পরিশোধিত":"Paid"};
 
+/* ---------- LOGIN GATE ---------- */
+function isAuthed(){
+  try{return sessionStorage.getItem(AUTH_KEY)==="1"}catch(e){return false}
+}
+function showApp(){
+  $("loginScreen").style.display="none";
+  $("appRoot").style.display="block";
+  if(!appBooted){appBooted=true;clearForm();init()}
+}
+function showLogin(){
+  try{sessionStorage.removeItem(AUTH_KEY)}catch(e){}
+  $("appRoot").style.display="none";
+  $("loginScreen").style.display="flex";
+  $("loginPass").value="";
+  $("loginErr").textContent="";
+  setTimeout(function(){$("loginPass").focus()},50);
+}
+
+$("togglePass").onclick=function(){
+  var inp=$("loginPass");
+  var isPwd=inp.type==="password";
+  inp.type=isPwd?"text":"password";
+  $("togglePass").textContent=isPwd?"Hide":"Show";
+};
+
+$("loginForm").onsubmit=function(e){
+  e.preventDefault();
+  var val=$("loginPass").value;
+  if(val===PASS_CODE){
+    try{sessionStorage.setItem(AUTH_KEY,"1")}catch(err){}
+    showApp();
+  }else{
+    $("loginErr").textContent="Incorrect password. Please try again.";
+    $("loginPass").select();
+  }
+};
+
+$("btnLock").onclick=function(){showLogin()};
+
 function tk(n){return "৳"+Math.round(n||0).toLocaleString("en-US")}
 function esc(s){var d=document.createElement("div");d.textContent=s==null?"":String(s);return d.innerHTML}
 function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function normDate(v){
+  if(!v)return today();
+  var s=String(v).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  var d=new Date(s);
+  if(!isNaN(d.getTime())){
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  return s.slice(0,10);
+}
 function total(o){return (+o.price||0)*(+o.qty||0)-(+o.dc||0)}
 function cls(v,t){return t=="d"?(v=="Delivered"?"g":v=="Returned"?"r":"o"):(v=="Paid"?"g":v=="Due"||v=="Loss"||v=="Scam"?"r":"o")}
 function isL(o){return o.pst=="Loss"||o.pst=="Scam"}
@@ -69,6 +119,12 @@ function idbDelStore(store,id){
   });
 }
 
+function renderAll(){
+  render();
+  renderAccounts();
+  renderStock();
+}
+
 async function init(){
   $("date").value=today();
   $("aDate").value=today();
@@ -87,9 +143,7 @@ async function init(){
     accounts=lsLoad(LS_ACC);
     stocks=lsLoad(LS_STK);
   }
-  render();
-  renderAccounts();
-  renderStock();
+  renderAll();
   $("mode").textContent=getSheetUrl()?"Connected to Google Sheet ✓":"Saved in this browser (take regular CSV / Sheet backups)";
 }
 
@@ -98,13 +152,15 @@ function persistOrder(o){
   if(i>=0)orders[i]=o;else orders.push(o);
   if(idb)idbPutStore("orders",o).catch(function(){alert("Could not save, please try again")});
   else lsSaveKey(LS,orders);
-  render();renderAccounts();renderStock();
+  renderAll();
+  syncToGoogleSheet(false);
 }
 function removeOrder(id){
   orders=orders.filter(function(x){return x.id!=id});
   if(idb)idbDelStore("orders",id).catch(function(){});
   else lsSaveKey(LS,orders);
-  render();renderAccounts();renderStock();
+  renderAll();
+  syncToGoogleSheet(false);
 }
 
 function persistAccount(a){
@@ -113,12 +169,14 @@ function persistAccount(a){
   if(idb)idbPutStore("accounts",a).catch(function(){alert("Could not save")});
   else lsSaveKey(LS_ACC,accounts);
   renderAccounts();
+  syncToGoogleSheet(false);
 }
 function removeAccount(id){
   accounts=accounts.filter(function(x){return x.id!=id});
   if(idb)idbDelStore("accounts",id).catch(function(){});
   else lsSaveKey(LS_ACC,accounts);
   renderAccounts();
+  syncToGoogleSheet(false);
 }
 
 function persistStock(s){
@@ -127,12 +185,14 @@ function persistStock(s){
   if(idb)idbPutStore("stocks",s).catch(function(){alert("Could not save")});
   else lsSaveKey(LS_STK,stocks);
   renderStock();render();
+  syncToGoogleSheet(false);
 }
 function removeStock(id){
   stocks=stocks.filter(function(x){return x.id!=id});
   if(idb)idbDelStore("stocks",id).catch(function(){});
   else lsSaveKey(LS_STK,stocks);
   renderStock();render();
+  syncToGoogleSheet(false);
 }
 
 /* ---------- 2. CUSTOMER DATA LOGIC ---------- */
@@ -239,7 +299,11 @@ function downloadCSV(rows,filename){
   var csv="\ufeff"+rows.map(function(r){return r.map(function(c){return '"'+String(c==null?"":c).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
   var tsv=rows.map(function(r){return r.map(function(c){return String(c==null?"":c).replace(/[\t\r\n]+/g," ")}).join("\t")}).join("\n");
   var m=$("csvmsg");if(m)m.textContent="";if($("cp"))$("cp").style.display="none";
-  try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=filename;a.click()}catch(e){}
+  try{
+    var url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+    var a=document.createElement("a");a.href=url;a.download=filename;a.click();
+    setTimeout(function(){URL.revokeObjectURL(url)},1000);
+  }catch(e){}
   if($("cpt")&&filename==="sr-prime-mart-orders.csv"){$("cpt").value=tsv;$("cp").style.display="block"}
 }
 $("cpc").onclick=function(){var t=$("cpt");t.select();var ok=false;try{ok=document.execCommand("copy")}catch(e){}$("csvmsg").textContent=ok?"Copied ✓ Now paste into Excel / Google Sheets":"Press Ctrl+C to copy the selected text"};
@@ -450,17 +514,24 @@ function syncToGoogleSheet(manual){
   });
 }
 
-var _origPersistOrder=persistOrder,_origRemoveOrder=removeOrder;
-persistOrder=function(o){_origPersistOrder(o);syncToGoogleSheet(false)};
-removeOrder=function(id){_origRemoveOrder(id);syncToGoogleSheet(false)};
-
-var _origPersistAccount=persistAccount,_origRemoveAccount=removeAccount;
-persistAccount=function(a){_origPersistAccount(a);syncToGoogleSheet(false)};
-removeAccount=function(id){_origRemoveAccount(id);syncToGoogleSheet(false)};
-
-var _origPersistStock=persistStock,_origRemoveStock=removeStock;
-persistStock=function(s){_origPersistStock(s);syncToGoogleSheet(false)};
-removeStock=function(id){_origRemoveStock(id);syncToGoogleSheet(false)};
+function upsertOrderLocal(o){
+  var i=orders.findIndex(function(x){return x.id==o.id});
+  if(i>=0)orders[i]=o;else orders.push(o);
+  if(idb)return idbPutStore("orders",o).catch(function(){});
+  lsSaveKey(LS,orders);
+}
+function upsertAccountLocal(a){
+  var i=accounts.findIndex(function(x){return x.id==a.id});
+  if(i>=0)accounts[i]=a;else accounts.push(a);
+  if(idb)return idbPutStore("accounts",a).catch(function(){});
+  lsSaveKey(LS_ACC,accounts);
+}
+function upsertStockLocal(s){
+  var i=stocks.findIndex(function(x){return x.id==s.id});
+  if(i>=0)stocks[i]=s;else stocks.push(s);
+  if(idb)return idbPutStore("stocks",s).catch(function(){});
+  lsSaveKey(LS_STK,stocks);
+}
 
 $("btnSheetUrl").onclick=function(){
   var cur=getSheetUrl();
@@ -481,39 +552,43 @@ $("btnSheetRestore").onclick=async function(){
   try{
     var res=await fetch(url);
     var data=await res.json();
-    if(data.orders){
+    var tasks=[];
+    if(Array.isArray(data.orders)){
       data.orders.forEach(function(r){
         if(!r.ID)return;
+        var qty=+r.Quantity||1;
         var o={
-          id:String(r.ID),inv:String(r.Invoice||""),date:String(r.Date||"").slice(0,10),
+          id:String(r.ID),inv:String(r.Invoice||""),date:normDate(r.Date),
           name:String(r.Name||""),phone:String(r.Phone||""),product:String(r.Product||""),
-          rs:r.Type==="Reseller",price:+r.Price||0,qty:+r.Quantity||1,
-          dc:+r["Delivery Charge"]||0,cost:r.Cost===""?null:(+r.Cost||0)/(+r.Quantity||1),
+          rs:r.Type==="Reseller",price:+r.Price||0,qty:qty,
+          dc:+r["Delivery Charge"]||0,cost:r.Cost===""||r.Cost==null?null:(+r.Cost||0)/qty,
           dst:r.Delivery||"Pending",pst:r.Payment||"Due",ts:+r.Timestamp||Date.now()
         };
-        _origPersistOrder(o);
+        tasks.push(upsertOrderLocal(o));
       });
     }
-    if(data.accounts){
+    if(Array.isArray(data.accounts)){
       data.accounts.forEach(function(r){
         if(!r.ID)return;
-        _origPersistAccount({
-          id:String(r.ID),date:String(r.Date||"").slice(0,10),type:r.Type||"Expense",
+        tasks.push(upsertAccountLocal({
+          id:String(r.ID),date:normDate(r.Date),type:r.Type||"Expense",
           cat:String(r.Category||""),note:String(r.Description||""),
           amt:+r.Amount||0,ts:+r.Timestamp||Date.now()
-        });
+        }));
       });
     }
-    if(data.stock){
+    if(Array.isArray(data.stock)){
       data.stock.forEach(function(r){
         if(!r.ID)return;
-        _origPersistStock({
+        tasks.push(upsertStockLocal({
           id:String(r.ID),sku:String(r.SKU||""),name:String(r["Product Name"]||""),
           cost:+r["Buying Cost"]||0,price:+r["Selling Price"]||0,
           qty:+r["Total Added"]||0,ts:+r.Timestamp||Date.now()
-        });
+        }));
       });
     }
+    await Promise.all(tasks);
+    renderAll();
     $("mode").textContent="Restored from Google Sheet ✓";
   }catch(err){
     alert("Could not restore from Google Sheet. Check your Apps Script deployment.");
@@ -521,5 +596,6 @@ $("btnSheetRestore").onclick=async function(){
   }
 };
 
-clearForm();init();
+if(isAuthed())showApp();
+else showLogin();
 })();
